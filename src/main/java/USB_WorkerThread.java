@@ -43,11 +43,10 @@ public class USB_WorkerThread implements Runnable {
     @Override
     public void run() {
         SerialPort comPort;
-        Date date = new Date();
         if ((comPort = init()) != null) {
             InputStream in = comPort.getInputStream();
             OutputStream out = comPort.getOutputStream();
-            System.out.println("Connecting to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "...       [RESETTING]");
+            System.out.println("Connecting to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [RESETTING]");
             try {
                 Thread.sleep(4000);
             } catch (InterruptedException e) {
@@ -76,7 +75,7 @@ public class USB_WorkerThread implements Runnable {
                         for (int data_byte = 0; data_byte < size; data_byte++) {
                             data[data_byte] = (byte) in.read();
                         }
-                        buffer.push(new CanBusPackage(mode, id, size, data, date.getTime() / 1000L));
+                        buffer.push(new CanBusPackage(mode, id, size, data, System.currentTimeMillis() / 1000L));
                     }
                     if (t_one - t_two > timeOutThreshold) {
                         flag.interrupt = true;
