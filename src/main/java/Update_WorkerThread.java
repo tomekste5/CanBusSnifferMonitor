@@ -45,7 +45,7 @@ public class Update_WorkerThread implements Runnable {
         Date date = new Date(canBusPackage.getTimestamp() * 1000L); // convert seconds to milliseconds
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss"); // the format of your date
         String formattedDate = dateFormat.format(date);
-        System.out.print(formattedDate + "   Package: {" + " id:[" + canBusPackage.getId() + "]   size:[" + canBusPackage.getSize() + "]   data:[ ");
+        System.out.print(formattedDate + "   PACKAGE  " + " id:[" + canBusPackage.getId() + "]   size:[" + canBusPackage.getSize() + "]   data:[ ");
 
         StringBuilder sb = new StringBuilder();
         for (byte b : canBusPackage.getData()) {

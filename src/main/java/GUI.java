@@ -10,6 +10,7 @@ import java.io.PrintStream;
 
 public class GUI extends JFrame {
     private Object[] baudRates = new Object[]{300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 31250, 38400, 57600, 115200};
+    private SerialPort[] serialPorts;
 
     GUI() {
         this.setLayout(new BorderLayout(0, 0));
@@ -43,7 +44,7 @@ public class GUI extends JFrame {
 
         bar.add(modes);
         JButton button = new JButton("Start");
-        SerialPort[] serialPorts = SerialPort.getCommPorts();
+        serialPorts = SerialPort.getCommPorts();
         Object[] ports = new Object[serialPorts.length];
 
         Object[] canSpeeds = new Object[]{"CAN_5KBPS", "CAN_10KBPS", "CAN_20KBPS", "CAN_31K25BPS", "CAN_33KBPS", "CAN_40KBPS", "CAN_50KBPS", "CAN_80KBPS", "CAN_83K3BPS", "CAN_95KBPS", "CAN_100KBPS", "CAN_125KBPS", "CAN_200KBPS", "CAN_250KBPS", "CAN_500KBPS", "CAN_1000KBPS"};
@@ -51,8 +52,9 @@ public class GUI extends JFrame {
 
         JLabel label = new JLabel("    Can Speed: ");
 
-        JTextField initPackageCountCombo = new JTextField("20"){
-            @Override public void setBorder(Border border) {
+        JTextField initPackageCountCombo = new JTextField("20") {
+            @Override
+            public void setBorder(Border border) {
 
             }
         };
@@ -61,7 +63,6 @@ public class GUI extends JFrame {
             @Override
             public void keyPressed(KeyEvent ke) {
                 JTextField field = (JTextField) ke.getSource();
-                System.out.println(ke.getKeyChar());
                 if (ke.getKeyChar() >= '0' && ke.getKeyChar() <= '9') {
                     field.setEditable(true);
                 } else {
@@ -71,7 +72,6 @@ public class GUI extends JFrame {
                 }
             }
         });
-
 
         JLabel initPackageCountlabel = new JLabel("    Package count:   ");
 
@@ -86,12 +86,23 @@ public class GUI extends JFrame {
                 flag.killedUSB = false;
 
                 new Thread(new USB_WorkerThread(buffer, Integer.valueOf(baudRates[baudrates.getSelectedIndex()].toString()),
-                        sPorts.getSelectedIndex(), flag, canSpeedsCombo.getSelectedIndex(),Integer.valueOf(initPackageCountCombo.getText()))).start();
+                        sPorts.getSelectedIndex(), flag, canSpeedsCombo.getSelectedIndex(), Integer.valueOf(initPackageCountCombo.getText()))).start();
                 new Thread(new Update_WorkerThread(buffer, flag, (modes.getSelectedIndex() == 1) ? true : false)).start();
                 button.setText("Stop");
-            } else {
+            }else if(flag.killedUpdater && flag.killedUSB){
                 flag.interrupt = true;
                 button.setText("Start");
+            }else {
+                flag.interrupt = true;
+                button.setText("Start");
+            }
+        });
+        JButton refreshB = new JButton("Refresh");
+        refreshB.addActionListener((ActionEvent e) -> {
+            sPorts.removeAllItems();
+            serialPorts = SerialPort.getCommPorts();
+            for (int i = 0; i < serialPorts.length; i++) {
+                sPorts.addItem(serialPorts[i].getDescriptivePortName());
             }
         });
 
@@ -107,6 +118,7 @@ public class GUI extends JFrame {
         bar.add(initPackageCountCombo);
         baudrates.setSelectedIndex(5);
         buttonPanel.add(button);
+        buttonPanel.add(refreshB);
 
 
         this.add(buttonPanel, BorderLayout.PAGE_END);
