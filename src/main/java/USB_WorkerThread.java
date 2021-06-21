@@ -15,13 +15,15 @@ public class USB_WorkerThread implements Runnable {
     float timeOutThreshold = 1000;
     int baudRate;
     int canSpeed;
+    int initPackageCount;
 
-    USB_WorkerThread(BufferInterface buffer, int baudRate, int port, Flag flag, int canSpeed) {
+    USB_WorkerThread(BufferInterface buffer, int baudRate, int port, Flag flag, int canSpeed, int initPackageCount) {
         this.buffer = buffer;
         this.port = port;
         this.flag = flag;
         this.baudRate = baudRate;
         this.canSpeed = canSpeed;
+        this.initPackageCount = initPackageCount;
     }
 
     private SerialPort init() {
@@ -31,13 +33,6 @@ public class USB_WorkerThread implements Runnable {
         if (comPort.openPort()) {
             return comPort;
         } else return null;
-    }
-
-    private long bytesToLong(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(bytes);
-        buffer.flip();//need flip
-        return buffer.getLong();
     }
 
     @Override
@@ -55,6 +50,7 @@ public class USB_WorkerThread implements Runnable {
             System.out.println("Connection to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [ESTABLISHED]");
             try {
                 out.write(canSpeed);
+                out.write(initPackageCount);
                 out.write(1);
                 float t_two = System.currentTimeMillis();
                 while (!flag.interrupt) {
@@ -94,6 +90,6 @@ public class USB_WorkerThread implements Runnable {
         } else {
             System.out.println("Connection to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [FAILED]");
         }
-
+        flag.killedUSB = true;
     }
 }

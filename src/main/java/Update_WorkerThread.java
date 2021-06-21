@@ -17,6 +17,7 @@ public class Update_WorkerThread implements Runnable {
     @Override
     public void run() {
         CanBusPackage canBusPackage;
+
         while (!flag.interrupt) {
             try {
                 Thread.sleep(100);
@@ -26,9 +27,10 @@ public class Update_WorkerThread implements Runnable {
             if ((canBusPackage = bufferInterface.get()) != null) {
                 if (canBusPackage.getMode() == 1 && mode) {
                     initPackages.add(canBusPackage);
-                    System.out.println(initPackages.size());
+                    System.out.print("[INITIALISING]        ");
+                    printPackage(canBusPackage);
                 } else if (mode) {
-                    if (isInInitArray(canBusPackage)) {
+                    if (!isInInitArray(canBusPackage)) {
                         printPackage(canBusPackage);
                     }
                 } else {
@@ -36,13 +38,14 @@ public class Update_WorkerThread implements Runnable {
                 }
             }
         }
+        flag.killedUpdater = true;
     }
 
     private void printPackage(CanBusPackage canBusPackage) {
         Date date = new Date(canBusPackage.getTimestamp() * 1000L); // convert seconds to milliseconds
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss"); // the format of your date
         String formattedDate = dateFormat.format(date);
-        System.out.print(formattedDate+"   Package: {"  + " id:[" + canBusPackage.getId() + "]   size:[" + canBusPackage.getSize() + "]   data:[ ");
+        System.out.print(formattedDate + "   Package: {" + " id:[" + canBusPackage.getId() + "]   size:[" + canBusPackage.getSize() + "]   data:[ ");
 
         StringBuilder sb = new StringBuilder();
         for (byte b : canBusPackage.getData()) {
@@ -57,10 +60,13 @@ public class Update_WorkerThread implements Runnable {
                 if (canBusPackage.getSize() == initPackages.get(packageIdx).getSize()) {
                     for (int dataIdx = 0; dataIdx < canBusPackage.getSize(); dataIdx++) {
                         if (canBusPackage.getData()[dataIdx] != initPackages.get(packageIdx).getData()[dataIdx]) break;
+                        if (dataIdx == canBusPackage.getSize() - 1) return true;
                     }
                 }
             }
+
+
         }
-        return true;
+        return false;
     }
 }
