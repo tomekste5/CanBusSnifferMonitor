@@ -12,7 +12,7 @@ public class USB_WorkerThread implements Runnable {
     int port;
     Flag flag;
     int header_size = 6;
-    float timeOutThreshold = 1000;
+    float timeOutThreshold = 5000;
     int baudRate;
     int canSpeed;
     int initPackageCount;
@@ -49,15 +49,14 @@ public class USB_WorkerThread implements Runnable {
             }
             System.out.println("Connection to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [ESTABLISHED]");
             try {
+                clearBuffer(in);
                 out.write(canSpeed);
                 out.write(initPackageCount);
                 out.write(1);
-                float t_two = System.currentTimeMillis();
+                long t_lastPackage = System.currentTimeMillis();;
                 while (!flag.interrupt) {
-                    float t_one = System.currentTimeMillis();
 
                     if (in.available() >= header_size) {
-                        t_two = System.currentTimeMillis();
                         int mode = in.read();
 
                         long id = ByteBuffer.wrap(in.readNBytes(4))
@@ -72,8 +71,9 @@ public class USB_WorkerThread implements Runnable {
                             data[data_byte] = (byte) in.read();
                         }
                         buffer.push(new CanBusPackage(mode, id, size, data, System.currentTimeMillis() / 1000L));
+                        t_lastPackage = System.currentTimeMillis();
                     }
-                    if (t_one - t_two > timeOutThreshold) {
+                    if ((System.currentTimeMillis() -  t_lastPackage) > timeOutThreshold) {
                         flag.interrupt = true;
                         System.out.println("Connection to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [TIMEOUT]");
                     }
@@ -91,5 +91,11 @@ public class USB_WorkerThread implements Runnable {
             System.out.println("Connection to " + SerialPort.getCommPorts()[port].getDescriptivePortName() + "       [FAILED]");
         }
         flag.killedUSB = true;
+    }
+
+    private void clearBuffer(InputStream in) throws IOException {
+        for (int idx = 0; idx < in.available(); idx++) {
+            in.read();
+        }
     }
 }

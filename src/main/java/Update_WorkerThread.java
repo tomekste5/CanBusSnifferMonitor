@@ -17,13 +17,12 @@ public class Update_WorkerThread implements Runnable {
     @Override
     public void run() {
         CanBusPackage canBusPackage;
-
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         while (!flag.interrupt) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             if ((canBusPackage = bufferInterface.get()) != null) {
                 if (canBusPackage.getMode() == 1 && mode) {
                     initPackages.add(canBusPackage);
